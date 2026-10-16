@@ -27,6 +27,14 @@ const state = {
 
   // Siege Planner State
   siege: {
+    attacker: {
+      tribeId: 'all',
+      unitId: 'warrior',
+      currentHp: 10,
+      maxHp: 10,
+      isVeteran: false,
+      isRangedDistance: false,
+    },
     target: {
       tribeId: 'all',
       unitId: 'defender',
@@ -157,20 +165,24 @@ function populateUnitSelect(selectElem, tribeId = 'all', selectedUnitId = null) 
 function initUnitDropdowns() {
   const atkTribeSelect = document.getElementById('attacker-tribe-select');
   const defTribeSelect = document.getElementById('defender-tribe-select');
+  const siegeAtkTribeSelect = document.getElementById('siege-atk-tribe-select');
   const siegeTribeSelect = document.getElementById('siege-target-tribe-select');
 
   const atkUnitSelect = document.getElementById('attacker-select');
   const defUnitSelect = document.getElementById('defender-select');
+  const siegeAtkUnitSelect = document.getElementById('siege-atk-select');
   const siegeUnitSelect = document.getElementById('siege-target-select');
 
   populateTribeSelect(atkTribeSelect, state.attacker.tribeId);
   populateTribeSelect(defTribeSelect, state.defender.tribeId);
+  if (siegeAtkTribeSelect) populateTribeSelect(siegeAtkTribeSelect, state.siege.attacker.tribeId);
   populateTribeSelect(siegeTribeSelect, state.siege.target.tribeId);
   const codexTribeSelect = document.getElementById('codex-tribe-select');
   if (codexTribeSelect) populateTribeSelect(codexTribeSelect, state.codex.tribeSkin || 'all');
 
   populateUnitSelect(atkUnitSelect, state.attacker.tribeId, state.attacker.unitId);
   populateUnitSelect(defUnitSelect, state.defender.tribeId, state.defender.unitId);
+  if (siegeAtkUnitSelect) populateUnitSelect(siegeAtkUnitSelect, state.siege.attacker.tribeId, state.siege.attacker.unitId);
   populateUnitSelect(siegeUnitSelect, state.siege.target.tribeId, state.siege.target.unitId);
 }
 
@@ -238,20 +250,40 @@ function initSkirmishEvents() {
   // Presets
   document.querySelectorAll('.preset-btn[data-target]').forEach(btn => {
     btn.addEventListener('click', () => {
-      const targetKey = btn.getAttribute('data-target') === 'atk' ? 'attacker' : 'defender';
+      const dt = btn.getAttribute('data-target');
       const action = btn.getAttribute('data-action');
-      const maxHp = state[targetKey].maxHp;
+      let targetObj;
+      let isSiege = false;
 
-      if (action === 'full') {
-        state[targetKey].currentHp = maxHp;
-      } else if (action === 'minus1') {
-        state[targetKey].currentHp = Math.max(1, state[targetKey].currentHp - 1);
-      } else if (action === 'half') {
-        state[targetKey].currentHp = Math.max(1, Math.ceil(maxHp / 2));
-      } else if (action === 'one') {
-        state[targetKey].currentHp = 1;
+      if (dt === 'atk') {
+        targetObj = state.attacker;
+      } else if (dt === 'def') {
+        targetObj = state.defender;
+      } else if (dt === 'siege-atk') {
+        targetObj = state.siege.attacker;
+        isSiege = true;
+      } else if (dt === 'siege-target') {
+        targetObj = state.siege.target;
+        isSiege = true;
       }
-      updateSkirmishUI();
+      if (!targetObj) return;
+
+      const maxHp = targetObj.maxHp;
+      if (action === 'full') {
+        targetObj.currentHp = maxHp;
+      } else if (action === 'minus1') {
+        targetObj.currentHp = Math.max(1, targetObj.currentHp - 1);
+      } else if (action === 'half') {
+        targetObj.currentHp = Math.max(1, Math.ceil(maxHp / 2));
+      } else if (action === 'one') {
+        targetObj.currentHp = 1;
+      }
+
+      if (isSiege) {
+        updateSiegeUI();
+      } else {
+        updateSkirmishUI();
+      }
     });
   });
 
@@ -606,6 +638,73 @@ function initFormulaAccordion() {
 
 // --- SIEGE PLANNER LOGIC ---
 function initSiegeEvents() {
+  // Attacker Card Events
+  const siegeAtkTribeSelect = document.getElementById('siege-atk-tribe-select');
+  const siegeAtkUnitSelect = document.getElementById('siege-atk-select');
+
+  siegeAtkTribeSelect?.addEventListener('change', (e) => {
+    state.siege.attacker.tribeId = e.target.value;
+    const activeUnit = populateUnitSelect(siegeAtkUnitSelect, state.siege.attacker.tribeId, state.siege.attacker.unitId);
+    state.siege.attacker.unitId = activeUnit.id;
+    state.siege.attacker.isVeteran = false;
+    state.siege.attacker.maxHp = activeUnit.maxHp;
+    state.siege.attacker.currentHp = activeUnit.maxHp;
+    state.siege.attacker.isRangedDistance = activeUnit.range > 1;
+    updateSiegeUI();
+  });
+
+  siegeAtkUnitSelect?.addEventListener('change', (e) => {
+    const unit = getUnitById(e.target.value);
+    state.siege.attacker.unitId = unit.id;
+    state.siege.attacker.isVeteran = false;
+    state.siege.attacker.maxHp = unit.maxHp;
+    state.siege.attacker.currentHp = unit.maxHp;
+    state.siege.attacker.isRangedDistance = unit.range > 1;
+    updateSiegeUI();
+  });
+
+  const siegeAtkHpSlider = document.getElementById('siege-atk-hp-slider');
+  siegeAtkHpSlider?.addEventListener('input', (e) => {
+    state.siege.attacker.currentHp = parseInt(e.target.value, 10);
+    updateSiegeUI();
+  });
+
+  const siegeAtkVetToggle = document.getElementById('siege-atk-veteran-toggle');
+  siegeAtkVetToggle?.addEventListener('change', (e) => {
+    state.siege.attacker.isVeteran = e.target.checked;
+    const baseUnit = getUnitById(state.siege.attacker.unitId);
+    state.siege.attacker.maxHp = baseUnit.maxHp + (state.siege.attacker.isVeteran ? 5 : 0);
+    if (state.siege.attacker.isVeteran) {
+      state.siege.attacker.currentHp = Math.min(state.siege.attacker.maxHp, state.siege.attacker.currentHp + 5);
+    } else {
+      state.siege.attacker.currentHp = Math.min(state.siege.attacker.maxHp, state.siege.attacker.currentHp);
+    }
+    updateSiegeUI();
+  });
+
+  const siegeAtkRangedToggle = document.getElementById('siege-atk-ranged-toggle');
+  siegeAtkRangedToggle?.addEventListener('change', (e) => {
+    state.siege.attacker.isRangedDistance = e.target.checked;
+    updateSiegeUI();
+  });
+
+  // Add Configured Attacker to Queue
+  document.getElementById('siege-add-attacker-btn')?.addEventListener('click', () => {
+    const atk = state.siege.attacker;
+    const unit = getUnitById(atk.unitId);
+    state.siege.queue.push({
+      id: Math.random().toString(36).substr(2, 9),
+      unitId: atk.unitId,
+      tribeId: atk.tribeId,
+      currentHp: atk.currentHp,
+      maxHp: atk.maxHp,
+      isVeteran: atk.isVeteran,
+      attackDistance: atk.isRangedDistance ? unit.range : 1,
+    });
+    updateSiegeUI();
+  });
+
+  // Target Card Events
   const siegeTribeSelect = document.getElementById('siege-target-tribe-select');
   const targetSelect = document.getElementById('siege-target-select');
 
@@ -618,7 +717,7 @@ function initSiegeEvents() {
     updateSiegeUI();
   });
 
-  targetSelect.addEventListener('change', (e) => {
+  targetSelect?.addEventListener('change', (e) => {
     const unit = getUnitById(e.target.value);
     state.siege.target.unitId = unit.id;
     state.siege.target.maxHp = unit.maxHp;
@@ -627,28 +726,28 @@ function initSiegeEvents() {
   });
 
   const hpSlider = document.getElementById('siege-target-hp-slider');
-  hpSlider.addEventListener('input', (e) => {
+  hpSlider?.addEventListener('input', (e) => {
     state.siege.target.currentHp = parseInt(e.target.value, 10);
     updateSiegeUI();
   });
 
   const bonusSelect = document.getElementById('siege-target-bonus');
-  bonusSelect.addEventListener('change', (e) => {
+  bonusSelect?.addEventListener('change', (e) => {
     state.siege.target.defenseBonusType = e.target.value;
     updateSiegeUI();
   });
 
   const poisonToggle = document.getElementById('siege-target-poison');
-  poisonToggle.addEventListener('change', (e) => {
+  poisonToggle?.addEventListener('change', (e) => {
     state.siege.target.isPoisoned = e.target.checked;
-    poisonToggle.closest('.toggle-pill').classList.toggle('active', e.target.checked);
+    poisonToggle.closest('.toggle-pill')?.classList.toggle('active', e.target.checked);
     updateSiegeUI();
   });
 
   const frozenToggle = document.getElementById('siege-target-frozen');
-  frozenToggle.addEventListener('change', (e) => {
+  frozenToggle?.addEventListener('change', (e) => {
     state.siege.target.isFrozen = e.target.checked;
-    frozenToggle.closest('.toggle-pill').classList.toggle('active', e.target.checked);
+    frozenToggle.closest('.toggle-pill')?.classList.toggle('active', e.target.checked);
     updateSiegeUI();
   });
 
@@ -660,6 +759,7 @@ function initSiegeEvents() {
       state.siege.queue.push({
         id: Math.random().toString(36).substr(2, 9),
         unitId: unit.id,
+        tribeId: state.siege.attacker.tribeId || 'all',
         currentHp: unit.maxHp,
         maxHp: unit.maxHp,
         attackDistance: unit.range > 1 ? unit.range : 1,
@@ -669,18 +769,79 @@ function initSiegeEvents() {
   });
 
   // Clear Queue
-  document.getElementById('clear-queue-btn').addEventListener('click', () => {
+  document.getElementById('clear-queue-btn')?.addEventListener('click', () => {
     state.siege.queue = [];
     updateSiegeUI();
   });
 
   // Auto Optimize Button
-  document.getElementById('optimize-sequence-btn').addEventListener('click', () => {
+  document.getElementById('optimize-sequence-btn')?.addEventListener('click', () => {
     optimizeSiegeSequence();
   });
 }
 
 function updateSiegeUI() {
+  // 1. Update Siege Attacker Card
+  const atk = state.siege.attacker;
+  const atkUnit = getUnitById(atk.unitId);
+  const atkImgUrl = getUnitImage(atkUnit, atk.tribeId);
+  const atkIcon = document.getElementById('siege-atk-icon');
+  if (atkIcon) {
+    atkIcon.innerHTML = `<img src="${atkImgUrl}" alt="${atkUnit.name}" class="main-unit-sprite" onerror="this.onerror=null; this.src='assets/units/${atkUnit.id}.png';">`;
+  }
+  const atkTribeLabel = atk.tribeId !== 'all' ? getTribeName(atk.tribeId) : atkUnit.tribe;
+  const atkTribeBadgeImg = document.getElementById('siege-atk-tribe-badge-img');
+  const atkTribeNameLabel = document.getElementById('siege-atk-tribe-name-label');
+  if (atkTribeBadgeImg) atkTribeBadgeImg.src = getTribeIcon(atk.tribeId);
+  if (atkTribeNameLabel) atkTribeNameLabel.textContent = atkTribeLabel;
+
+  // Attacker Stats
+  const atkStatAttack = document.getElementById('siege-atk-stat-attack');
+  const atkStatDefense = document.getElementById('siege-atk-stat-defense');
+  const atkStatRange = document.getElementById('siege-atk-stat-range');
+  const atkStatMove = document.getElementById('siege-atk-stat-movement');
+  if (atkStatAttack) atkStatAttack.textContent = atkUnit.attack;
+  if (atkStatDefense) atkStatDefense.textContent = atkUnit.defense;
+  if (atkStatRange) atkStatRange.textContent = atkUnit.range;
+  if (atkStatMove) atkStatMove.textContent = atkUnit.movement;
+
+  // Attacker HP
+  const atkHpCur = document.getElementById('siege-atk-hp-cur');
+  const atkHpMax = document.getElementById('siege-atk-hp-max');
+  const atkSlider = document.getElementById('siege-atk-hp-slider');
+  const atkBar = document.getElementById('siege-atk-hp-bar');
+
+  if (atkHpCur) atkHpCur.textContent = atk.currentHp;
+  if (atkHpMax) atkHpMax.textContent = atk.maxHp;
+  if (atkSlider) {
+    atkSlider.max = atk.maxHp;
+    atkSlider.value = atk.currentHp;
+  }
+  if (atkBar) {
+    const pct = Math.round((atk.currentHp / atk.maxHp) * 100);
+    atkBar.style.width = `${pct}%`;
+    atkBar.style.backgroundColor = getHpColor(pct);
+  }
+
+  // Veteran & Ranged toggles
+  const vetToggle = document.getElementById('siege-atk-veteran-toggle');
+  const vetLabel = document.getElementById('siege-atk-veteran-label');
+  if (vetToggle && vetLabel) {
+    const canVeteran = (!atkUnit.skills.includes('Fortify') && atkUnit.category !== 'Special') || atkUnit.maxHp === 10 || atkUnit.maxHp === 15;
+    vetLabel.style.display = canVeteran ? 'flex' : 'none';
+    vetToggle.checked = atk.isVeteran;
+    vetLabel.classList.toggle('active', atk.isVeteran);
+  }
+
+  const rangedToggle = document.getElementById('siege-atk-ranged-toggle');
+  const rangedLabel = document.getElementById('siege-atk-ranged-label');
+  if (rangedToggle && rangedLabel) {
+    rangedLabel.style.display = atkUnit.range > 1 ? 'flex' : 'none';
+    rangedToggle.checked = atk.isRangedDistance;
+    rangedLabel.classList.toggle('active', atk.isRangedDistance);
+  }
+
+  // 2. Update Siege Target Card
   const targetUnit = getUnitById(state.siege.target.unitId);
   const targetImgUrl = getUnitImage(targetUnit, state.siege.target.tribeId);
   document.getElementById('siege-target-icon').innerHTML = `<img src="${targetImgUrl}" alt="${targetUnit.name}" class="main-unit-sprite" onerror="this.onerror=null; this.src='assets/units/${targetUnit.id}.png';">`;
@@ -1326,7 +1487,56 @@ function initMouseWheelControls() {
     updateSkirmishUI();
   }, 35), { passive: false });
 
-  // 8. Siege Target Tribe Scroll
+  // 8. Siege Attacker Tribe Scroll
+  const siegeAtkTribeSelect = document.getElementById('siege-atk-tribe-select');
+  siegeAtkTribeSelect?.addEventListener('wheel', makeWheelStepHandler((step) => {
+    const nextTribe = cycleTribe(state.siege.attacker.tribeId, step);
+    state.siege.attacker.tribeId = nextTribe.id;
+    siegeAtkTribeSelect.value = nextTribe.id;
+    const activeUnit = populateUnitSelect(document.getElementById('siege-atk-select'), state.siege.attacker.tribeId, state.siege.attacker.unitId);
+    state.siege.attacker.unitId = activeUnit.id;
+    state.siege.attacker.isVeteran = false;
+    state.siege.attacker.maxHp = activeUnit.maxHp;
+    state.siege.attacker.currentHp = activeUnit.maxHp;
+    state.siege.attacker.isRangedDistance = activeUnit.range > 1;
+    updateSiegeUI();
+  }, 40), { passive: false });
+
+  // 9. Siege Attacker Unit Scroll
+  const siegeAtkElements = [
+    document.getElementById('siege-atk-icon'),
+    document.getElementById('siege-atk-select'),
+    document.querySelector('.siege-attacker-card .card-top-info')
+  ];
+
+  const onSiegeAtkWheel = makeWheelStepHandler((step) => {
+    const nextUnit = cycleUnit(state.siege.attacker.unitId, step, state.siege.attacker.tribeId);
+    state.siege.attacker.unitId = nextUnit.id;
+    state.siege.attacker.isVeteran = false;
+    state.siege.attacker.maxHp = nextUnit.maxHp;
+    state.siege.attacker.currentHp = nextUnit.maxHp;
+    state.siege.attacker.isRangedDistance = nextUnit.range > 1;
+    const sel = document.getElementById('siege-atk-select');
+    if (sel) sel.value = nextUnit.id;
+    updateSiegeUI();
+  }, 40);
+
+  siegeAtkElements.forEach(el => {
+    el?.addEventListener('wheel', onSiegeAtkWheel, { passive: false });
+  });
+
+  // 10. Siege Attacker HP Scroll
+  const siegeAtkHpBox = document.querySelector('.siege-attacker-card .hp-control-box');
+  siegeAtkHpBox?.addEventListener('wheel', makeWheelStepHandler((step) => {
+    const change = step < 0 ? 1 : -1;
+    const newHp = Math.max(1, Math.min(state.siege.attacker.maxHp, state.siege.attacker.currentHp + change));
+    if (newHp !== state.siege.attacker.currentHp) {
+      state.siege.attacker.currentHp = newHp;
+      updateSiegeUI();
+    }
+  }, 25), { passive: false });
+
+  // 11. Siege Target Tribe Scroll
   const siegeTribeSelect = document.getElementById('siege-target-tribe-select');
   siegeTribeSelect?.addEventListener('wheel', makeWheelStepHandler((step) => {
     const nextTribe = cycleTribe(state.siege.target.tribeId, step);

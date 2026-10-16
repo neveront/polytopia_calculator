@@ -369,8 +369,95 @@
     <section id="siege-view" class="view-section">
       <div class="siege-container">
 
-        <!-- SIEGE TARGET CARD (LEFT) -->
-        <div class="siege-target-card">
+        <!-- SIEGE ATTACKER CARD (CONFIGURE & ADD ANY UNIT) -->
+        <div class="siege-attacker-card unit-card">
+          <div class="card-header">
+            <span class="card-role-badge"><img src="assets/icons/swords.svg" class="badge-icon" alt=""> Attacker Setup</span>
+            <div id="siege-atk-tribe-tag" class="text-dim" style="font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+              <img id="siege-atk-tribe-badge-img" src="assets/icons/star.png" class="tribe-badge-mini" alt="">
+              <span id="siege-atk-tribe-name-label">Standard</span>
+            </div>
+          </div>
+
+          <div class="card-top-info">
+            <div id="siege-atk-icon" class="unit-icon-large" title="Scroll wheel to cycle through units">
+              <img src="assets/icons/swords.svg" alt="Attacker" class="main-unit-sprite">
+            </div>
+            <div class="unit-select-wrap">
+              <div style="margin-bottom: 6px;">
+                <label for="siege-atk-tribe-select">Attacker Tribe</label>
+                <select id="siege-atk-tribe-select" class="custom-select" title="Scroll wheel to cycle tribe"></select>
+              </div>
+              <div>
+                <label for="siege-atk-select">Unit Type</label>
+                <select id="siege-atk-select" class="custom-select" title="Scroll wheel to cycle units"></select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Base Stats -->
+          <div class="stat-chips-grid">
+            <div class="stat-chip" title="Attack">
+              <div class="label"><img src="assets/icons/attack.svg" class="chip-svg" alt=""> Attack</div>
+              <div id="siege-atk-stat-attack" class="val">2</div>
+            </div>
+            <div class="stat-chip" title="Defense">
+              <div class="label"><img src="assets/icons/defense.svg" class="chip-svg" alt=""> Defense</div>
+              <div id="siege-atk-stat-defense" class="val">2</div>
+            </div>
+            <div class="stat-chip" title="Range">
+              <div class="label"><img src="assets/icons/range.svg" class="chip-svg" alt=""> Range</div>
+              <div id="siege-atk-stat-range" class="val">1</div>
+            </div>
+            <div class="stat-chip" title="Movement">
+              <div class="label"><img src="assets/icons/movement.svg" class="chip-svg" alt=""> Move</div>
+              <div id="siege-atk-stat-movement" class="val">1</div>
+            </div>
+          </div>
+
+          <!-- HP Control -->
+          <div class="hp-control-box">
+            <div class="hp-top-row">
+              <span class="hp-title">Unit Health</span>
+              <span class="hp-digits"><span id="siege-atk-hp-cur">10</span> / <span id="siege-atk-hp-max">10</span> HP</span>
+            </div>
+            <div class="hp-bar-track">
+              <div id="siege-atk-hp-bar" class="hp-bar-fill" style="width: 100%;"></div>
+            </div>
+            <input type="range" id="siege-atk-hp-slider" class="hp-slider" min="1" max="10" value="10">
+            <div class="hp-presets">
+              <button class="preset-btn" data-target="siege-atk" data-action="full">Full</button>
+              <button class="preset-btn" data-target="siege-atk" data-action="minus1">-1 HP</button>
+              <button class="preset-btn" data-target="siege-atk" data-action="half">Half</button>
+              <button class="preset-btn" data-target="siege-atk" data-action="one">1 HP</button>
+            </div>
+          </div>
+
+          <!-- Modifiers -->
+          <div class="modifier-section" style="margin-bottom: 12px;">
+            <div class="toggle-group">
+              <label id="siege-atk-veteran-label" class="toggle-pill">
+                <input type="checkbox" id="siege-atk-veteran-toggle">
+                <img src="assets/icons/star.png" class="pill-icon" alt="">
+                <span>Veteran (+5 HP)</span>
+              </label>
+
+              <label id="siege-atk-ranged-label" class="toggle-pill">
+                <input type="checkbox" id="siege-atk-ranged-toggle">
+                <img src="assets/icons/range.svg" class="pill-icon" alt="">
+                <span>Ranged Hit</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Add Button -->
+          <button id="siege-add-attacker-btn" class="siege-add-btn">
+            <img src="assets/icons/swords.svg" class="btn-icon" alt=""> Add to Assault Queue
+          </button>
+        </div>
+
+        <!-- SIEGE TARGET CARD (DEFENDER) -->
+        <div class="siege-target-card unit-card">
           <div class="card-header">
             <span class="card-role-badge"><img src="assets/icons/city_wall.png" class="badge-icon" alt=""> Siege Target</span>
             <div id="siege-target-tribe-tag" class="text-dim" style="font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 6px;">
@@ -404,6 +491,12 @@
               <div id="siege-target-hp-bar" class="hp-bar-fill" style="width: 100%;"></div>
             </div>
             <input type="range" id="siege-target-hp-slider" class="hp-slider" min="1" max="15" value="15">
+            <div class="hp-presets">
+              <button class="preset-btn" data-target="siege-target" data-action="full">Full</button>
+              <button class="preset-btn" data-target="siege-target" data-action="minus1">-1 HP</button>
+              <button class="preset-btn" data-target="siege-target" data-action="half">Half</button>
+              <button class="preset-btn" data-target="siege-target" data-action="one">1 HP</button>
+            </div>
           </div>
 
           <div class="bonus-select-box" style="margin-bottom: 12px;">
