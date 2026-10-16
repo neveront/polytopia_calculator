@@ -62,6 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initSiegeEvents();
   initCodexEvents();
   initMouseWheelControls();
+  initBattleAnimation();
 
   // Initial updates
   updateSkirmishUI();
@@ -1378,4 +1379,302 @@ function initMouseWheelControls() {
     siegeBonusElem.value = state.siege.target.defenseBonusType;
     updateSiegeUI();
   }, 35), { passive: false });
+}
+
+// ==========================================================================
+// BATTLE ANIMATION OVERLAY SYSTEM
+// ==========================================================================
+let battleAnimationTimers = [];
+
+function clearBattleAnimationTimers() {
+  battleAnimationTimers.forEach(id => clearTimeout(id));
+  battleAnimationTimers = [];
+}
+
+function initBattleAnimation() {
+  const playBtn = document.getElementById('play-battle-btn');
+  const modal = document.getElementById('battle-modal');
+  const backdrop = document.getElementById('battle-modal-backdrop');
+  const closeBtn = document.getElementById('close-battle-modal-btn');
+  const finishBtn = document.getElementById('finish-battle-btn');
+  const replayBtn = document.getElementById('replay-battle-btn');
+
+  playBtn?.addEventListener('click', () => {
+    startBattleAnimation();
+  });
+
+  backdrop?.addEventListener('click', () => {
+    closeBattleAnimation();
+  });
+
+  closeBtn?.addEventListener('click', () => {
+    closeBattleAnimation();
+  });
+
+  finishBtn?.addEventListener('click', () => {
+    closeBattleAnimation();
+  });
+
+  replayBtn?.addEventListener('click', () => {
+    startBattleAnimation();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal?.classList.contains('active')) {
+      closeBattleAnimation();
+    }
+  });
+}
+
+function closeBattleAnimation() {
+  clearBattleAnimationTimers();
+  const modal = document.getElementById('battle-modal');
+  modal?.classList.remove('active');
+  modal?.setAttribute('aria-hidden', 'true');
+}
+
+function animateNumber(element, start, end, duration) {
+  if (!element) return;
+  const startTime = performance.now();
+  const diff = end - start;
+
+  function update(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const currentVal = Math.round(start + diff * progress);
+    element.textContent = currentVal;
+    if (progress < 1) {
+      requestAnimationFrame(update);
+    } else {
+      element.textContent = end;
+    }
+  }
+
+  requestAnimationFrame(update);
+}
+
+function startBattleAnimation() {
+  clearBattleAnimationTimers();
+
+  const modal = document.getElementById('battle-modal');
+  if (!modal) return;
+
+  const atkUnit = getUnitById(state.attacker.unitId);
+  const defUnit = getUnitById(state.defender.unitId);
+  const distance = state.attacker.isRangedDistance ? atkUnit.range : 1;
+
+  const combatResult = calculateCombat(
+    {
+      ...atkUnit,
+      currentHp: state.attacker.currentHp,
+      maxHp: state.attacker.maxHp,
+    },
+    {
+      ...defUnit,
+      currentHp: state.defender.currentHp,
+      maxHp: state.defender.maxHp,
+      defenseBonusType: state.defender.defenseBonusType,
+      isPoisoned: state.defender.isPoisoned,
+      isFrozen: state.defender.isFrozen,
+    },
+    { distance }
+  );
+
+  // Modal DOM elements
+  const stage = document.getElementById('battle-stage');
+  const atkCard = document.getElementById('anim-attacker-card');
+  const defCard = document.getElementById('anim-defender-card');
+  const clashIcon = document.getElementById('anim-clash-icon');
+  const actionText = document.getElementById('anim-action-text');
+
+  const atkImg = document.getElementById('anim-atk-img');
+  const defImg = document.getElementById('anim-def-img');
+  const atkName = document.getElementById('anim-atk-name');
+  const defName = document.getElementById('anim-def-name');
+  const atkTribe = document.getElementById('anim-atk-tribe');
+  const defTribe = document.getElementById('anim-def-tribe');
+
+  const atkHpCur = document.getElementById('anim-atk-hp-cur');
+  const atkHpMax = document.getElementById('anim-atk-hp-max');
+  const atkHpBar = document.getElementById('anim-atk-hp-bar');
+
+  const defHpCur = document.getElementById('anim-def-hp-cur');
+  const defHpMax = document.getElementById('anim-def-hp-max');
+  const defHpBar = document.getElementById('anim-def-hp-bar');
+
+  const atkSkull = document.getElementById('anim-atk-skull');
+  const defSkull = document.getElementById('anim-def-skull');
+  const atkDmgFloater = document.getElementById('anim-atk-dmg-floater');
+  const defDmgFloater = document.getElementById('anim-def-dmg-floater');
+  const outcomeBanner = document.getElementById('anim-outcome-banner');
+  const outcomeTitle = document.getElementById('anim-outcome-title');
+  const outcomeDesc = document.getElementById('anim-outcome-desc');
+
+  // Reset visual classes
+  stage?.classList.remove('shake');
+  atkCard?.classList.remove('lunge-right', 'defeated');
+  defCard?.classList.remove('lunge-left', 'defeated');
+  clashIcon?.classList.remove('flash');
+
+  // Reset skull badges and floaters
+  if (atkSkull) atkSkull.style.display = 'none';
+  if (defSkull) defSkull.style.display = 'none';
+  if (atkDmgFloater) atkDmgFloater.style.display = 'none';
+  if (defDmgFloater) defDmgFloater.style.display = 'none';
+  if (outcomeBanner) outcomeBanner.style.display = 'none';
+
+  // Set unit info
+  const atkImgUrl = getUnitImage(atkUnit, state.attacker.tribeId);
+  const defImgUrl = getUnitImage(defUnit, state.defender.tribeId);
+  if (atkImg) atkImg.src = atkImgUrl;
+  if (defImg) defImg.src = defImgUrl;
+
+  if (atkName) atkName.textContent = atkUnit.name;
+  if (defName) defName.textContent = defUnit.name;
+
+  if (atkTribe) atkTribe.textContent = state.attacker.tribeId !== 'all' ? getTribeName(state.attacker.tribeId) : atkUnit.tribe;
+  if (defTribe) defTribe.textContent = state.defender.tribeId !== 'all' ? getTribeName(state.defender.tribeId) : defUnit.tribe;
+
+  // Initial starting HP
+  const startAtkHp = state.attacker.currentHp;
+  const startDefHp = state.defender.currentHp;
+  const maxAtkHp = state.attacker.maxHp;
+  const maxDefHp = state.defender.maxHp;
+
+  if (atkHpCur) atkHpCur.textContent = startAtkHp;
+  if (atkHpMax) atkHpMax.textContent = maxAtkHp;
+  if (defHpCur) defHpCur.textContent = startDefHp;
+  if (defHpMax) defHpMax.textContent = maxDefHp;
+
+  const startAtkPct = Math.max(0, Math.round((startAtkHp / maxAtkHp) * 100));
+  const startDefPct = Math.max(0, Math.round((startDefHp / maxDefHp) * 100));
+
+  if (atkHpBar) {
+    atkHpBar.style.width = `${startAtkPct}%`;
+    atkHpBar.style.backgroundColor = getHpColor(startAtkPct);
+  }
+  if (defHpBar) {
+    defHpBar.style.width = `${startDefPct}%`;
+    defHpBar.style.backgroundColor = getHpColor(startDefPct);
+  }
+
+  if (actionText) actionText.textContent = 'Preparing duel...';
+
+  // Open modal
+  modal.classList.add('active');
+  modal.setAttribute('aria-hidden', 'false');
+
+  // TIMELINE STEP 1: Attacker strikes
+  battleAnimationTimers.push(setTimeout(() => {
+    if (actionText) actionText.textContent = `${atkUnit.name} attacks!`;
+    atkCard?.classList.add('lunge-right');
+  }, 450));
+
+  // TIMELINE STEP 2: Clash impact & Defender takes damage
+  battleAnimationTimers.push(setTimeout(() => {
+    atkCard?.classList.remove('lunge-right');
+    stage?.classList.add('shake');
+    clashIcon?.classList.add('flash');
+
+    // Floating damage on defender
+    if (defDmgFloater) {
+      defDmgFloater.textContent = `-${combatResult.attackerDamageDealt}`;
+      defDmgFloater.style.display = 'block';
+    }
+
+    // Drain defender health bar to aftermath
+    const aftermathDefHp = combatResult.defenderRemainingHp;
+    const aftermathDefPct = Math.max(0, Math.round((aftermathDefHp / maxDefHp) * 100));
+
+    if (defHpBar) {
+      defHpBar.style.width = `${aftermathDefPct}%`;
+      defHpBar.style.backgroundColor = getHpColor(aftermathDefPct);
+    }
+    if (defHpCur) {
+      animateNumber(defHpCur, startDefHp, aftermathDefHp, 600);
+    }
+
+    if (combatResult.defenderKilled) {
+      defCard?.classList.add('defeated');
+    }
+  }, 850));
+
+  // TIMELINE STEP 2b: Remove shake & show skull if defender killed
+  battleAnimationTimers.push(setTimeout(() => {
+    stage?.classList.remove('shake');
+    clashIcon?.classList.remove('flash');
+    if (combatResult.defenderKilled && defSkull) {
+      defSkull.style.display = 'flex';
+    }
+  }, 1300));
+
+  // TIMELINE STEP 3: Retaliation or Safe counter
+  battleAnimationTimers.push(setTimeout(() => {
+    if (combatResult.canRetaliate) {
+      if (actionText) actionText.textContent = `${defUnit.name} retaliates!`;
+      defCard?.classList.add('lunge-left');
+
+      // Retaliation impact at +400ms
+      battleAnimationTimers.push(setTimeout(() => {
+        defCard?.classList.remove('lunge-left');
+        stage?.classList.add('shake');
+        clashIcon?.classList.add('flash');
+
+        if (atkDmgFloater) {
+          atkDmgFloater.textContent = `-${combatResult.defenderRetaliationDealt}`;
+          atkDmgFloater.style.display = 'block';
+        }
+
+        const aftermathAtkHp = combatResult.attackerRemainingHp;
+        const aftermathAtkPct = Math.max(0, Math.round((aftermathAtkHp / maxAtkHp) * 100));
+
+        if (atkHpBar) {
+          atkHpBar.style.width = `${aftermathAtkPct}%`;
+          atkHpBar.style.backgroundColor = getHpColor(aftermathAtkPct);
+        }
+        if (atkHpCur) {
+          animateNumber(atkHpCur, startAtkHp, aftermathAtkHp, 600);
+        }
+
+        if (combatResult.attackerKilled) {
+          atkCard?.classList.add('defeated');
+        }
+      }, 400));
+
+      battleAnimationTimers.push(setTimeout(() => {
+        stage?.classList.remove('shake');
+        clashIcon?.classList.remove('flash');
+        if (combatResult.attackerKilled && atkSkull) {
+          atkSkull.style.display = 'flex';
+        }
+      }, 900));
+
+    } else {
+      if (actionText) actionText.textContent = `No counter: ${combatResult.retaliationReason}`;
+    }
+  }, 1600));
+
+  // TIMELINE STEP 4: Outcome banner displays
+  const outcomeDelay = combatResult.canRetaliate ? 2800 : 2000;
+  battleAnimationTimers.push(setTimeout(() => {
+    if (actionText) actionText.textContent = 'Duel concluded';
+
+    if (outcomeBanner && outcomeTitle && outcomeDesc) {
+      outcomeBanner.style.display = 'block';
+
+      if (combatResult.defenderKilled) {
+        outcomeTitle.textContent = 'DEFENDER ELIMINATED';
+        outcomeTitle.style.color = '#38bdf8';
+        outcomeDesc.textContent = `${atkUnit.name} dealt ${combatResult.attackerDamageDealt} damage and routed the defender!`;
+      } else if (combatResult.attackerKilled) {
+        outcomeTitle.textContent = 'ATTACKER DEFEATED';
+        outcomeTitle.style.color = '#f87171';
+        outcomeDesc.textContent = `${atkUnit.name} was eliminated by the defender's ${combatResult.defenderRetaliationDealt} damage retaliation!`;
+      } else {
+        outcomeTitle.textContent = 'BOTH UNITS SURVIVED';
+        outcomeTitle.style.color = '#94a3b8';
+        outcomeDesc.textContent = `${atkUnit.name} dealt ${combatResult.attackerDamageDealt} damage; ${defUnit.name} retaliated with ${combatResult.defenderRetaliationDealt} damage.`;
+      }
+    }
+  }, outcomeDelay));
 }

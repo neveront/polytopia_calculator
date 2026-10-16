@@ -168,6 +168,10 @@
               Defender counter-attacks simultaneously
             </div>
 
+            <button id="play-battle-btn" class="play-battle-btn">
+              <img src="assets/icons/swords.svg" class="btn-icon" alt=""> Simulate Fight Animation
+            </button>
+
             <button id="swap-roles-btn" class="swap-units-btn">
               <span>⇄</span> Swap Attacker & Defender
             </button>
@@ -517,6 +521,98 @@
     </section>
 
   </main>
+
+  <!-- ==================== BATTLE ANIMATION OVERLAY (MODAL) ==================== -->
+  <div id="battle-modal" class="battle-overlay" aria-hidden="true">
+    <div class="battle-overlay-backdrop" id="battle-modal-backdrop"></div>
+    <div class="battle-dialog">
+      <!-- Modal Header -->
+      <div class="battle-dialog-header">
+        <div class="battle-dialog-title">
+          <img src="assets/icons/swords.svg" class="title-swords-icon" alt="">
+          <span>Battle Clash Animation</span>
+        </div>
+        <button id="close-battle-modal-btn" class="battle-close-btn" aria-label="Close Battle Simulation">✕</button>
+      </div>
+
+      <!-- Battle Stage / Arena -->
+      <div class="battle-stage" id="battle-stage">
+        <!-- Attacker Fighter -->
+        <div class="fighter-card fighter-attacker" id="anim-attacker-card">
+          <div class="fighter-tag">Attacker</div>
+          <div class="fighter-portrait-wrap">
+            <div class="fighter-portrait" id="anim-atk-portrait">
+              <img id="anim-atk-img" src="assets/icons/swords.svg" alt="Attacker" class="fighter-sprite">
+            </div>
+            <div id="anim-atk-skull" class="anim-skull-badge" style="display: none;">
+              <img src="assets/icons/skull.png" alt="Dead">
+              <span>Eliminated</span>
+            </div>
+            <div id="anim-atk-dmg-floater" class="dmg-floating-pop" style="display: none;">-5</div>
+          </div>
+          <div class="fighter-name" id="anim-atk-name">Warrior</div>
+          <div class="fighter-tribe" id="anim-atk-tribe">Standard</div>
+          <div class="fighter-hp-wrap">
+            <div class="fighter-hp-digits">
+              <span id="anim-atk-hp-cur">10</span> / <span id="anim-atk-hp-max">10</span> HP
+            </div>
+            <div class="fighter-hp-track">
+              <div id="anim-atk-hp-bar" class="fighter-hp-fill" style="width: 100%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Center Clash Zone -->
+        <div class="clash-center-zone">
+          <div class="clash-icon-wrap" id="anim-clash-icon">
+            <img src="assets/icons/swords.svg" class="clash-swords" alt="VS">
+          </div>
+          <div id="anim-action-text" class="clash-action-text">Preparing clash...</div>
+        </div>
+
+        <!-- Defender Fighter -->
+        <div class="fighter-card fighter-defender" id="anim-defender-card">
+          <div class="fighter-tag">Defender</div>
+          <div class="fighter-portrait-wrap">
+            <div class="fighter-portrait" id="anim-def-portrait">
+              <img id="anim-def-img" src="assets/icons/defense.svg" alt="Defender" class="fighter-sprite">
+            </div>
+            <div id="anim-def-skull" class="anim-skull-badge" style="display: none;">
+              <img src="assets/icons/skull.png" alt="Dead">
+              <span>Eliminated</span>
+            </div>
+            <div id="anim-def-dmg-floater" class="dmg-floating-pop" style="display: none;">-5</div>
+          </div>
+          <div class="fighter-name" id="anim-def-name">Warrior</div>
+          <div class="fighter-tribe" id="anim-def-tribe">Standard</div>
+          <div class="fighter-hp-wrap">
+            <div class="fighter-hp-digits">
+              <span id="anim-def-hp-cur">10</span> / <span id="anim-def-hp-max">10</span> HP
+            </div>
+            <div class="fighter-hp-track">
+              <div id="anim-def-hp-bar" class="fighter-hp-fill" style="width: 100%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Outcome Banner inside Modal -->
+      <div id="anim-outcome-banner" class="battle-outcome-banner" style="display: none;">
+        <div id="anim-outcome-title" class="battle-outcome-title">DEFENDER ELIMINATED</div>
+        <div id="anim-outcome-desc" class="battle-outcome-desc">Attacker dealt lethal damage.</div>
+      </div>
+
+      <!-- Controls inside Modal -->
+      <div class="battle-dialog-actions">
+        <button id="replay-battle-btn" class="battle-action-btn btn-replay">
+          <span>↺</span> Replay Fight
+        </button>
+        <button id="finish-battle-btn" class="battle-action-btn btn-close-modal">
+          <span>✓</span> Close
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Load Modules -->
   <script type="module" src="js/app.js"></script>
