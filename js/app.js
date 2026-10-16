@@ -688,7 +688,31 @@ function initSiegeEvents() {
     updateSiegeUI();
   });
 
-  // Add Configured Attacker to Queue
+  // Floating Attacker Modal Controls
+  const openModalBtn = document.getElementById('open-siege-attacker-modal-btn');
+  const closeModalBtn = document.getElementById('close-siege-attacker-modal-btn');
+  const modalBackdrop = document.getElementById('siege-attacker-modal-backdrop');
+  const attackerModal = document.getElementById('siege-attacker-modal');
+
+  openModalBtn?.addEventListener('click', () => {
+    openSiegeAttackerModal();
+  });
+
+  closeModalBtn?.addEventListener('click', () => {
+    closeSiegeAttackerModal();
+  });
+
+  modalBackdrop?.addEventListener('click', () => {
+    closeSiegeAttackerModal();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && attackerModal?.classList.contains('active')) {
+      closeSiegeAttackerModal();
+    }
+  });
+
+  // Add Configured Attacker to Queue (auto-closes floating card upon adding)
   document.getElementById('siege-add-attacker-btn')?.addEventListener('click', () => {
     const atk = state.siege.attacker;
     const unit = getUnitById(atk.unitId);
@@ -702,6 +726,7 @@ function initSiegeEvents() {
       attackDistance: atk.isRangedDistance ? unit.range : 1,
     });
     updateSiegeUI();
+    closeSiegeAttackerModal();
   });
 
   // Target Card Events
@@ -778,6 +803,21 @@ function initSiegeEvents() {
   document.getElementById('optimize-sequence-btn')?.addEventListener('click', () => {
     optimizeSiegeSequence();
   });
+}
+
+export function openSiegeAttackerModal() {
+  const modal = document.getElementById('siege-attacker-modal');
+  if (!modal) return;
+  modal.classList.add('active');
+  modal.setAttribute('aria-hidden', 'false');
+  updateSiegeUI();
+}
+
+export function closeSiegeAttackerModal() {
+  const modal = document.getElementById('siege-attacker-modal');
+  if (!modal) return;
+  modal.classList.remove('active');
+  modal.setAttribute('aria-hidden', 'true');
 }
 
 function updateSiegeUI() {
@@ -915,10 +955,14 @@ function renderSiegeQueue() {
 
   if (state.siege.queue.length === 0) {
     queueList.innerHTML = `
-      <div style="text-align: center; color: var(--text-dim); padding: 20px; font-size: 0.88rem;">
-        Queue is empty. Click "+ Add" buttons above to build an assault wave!
+      <div style="text-align: center; color: var(--text-dim); padding: 28px 16px; font-size: 0.88rem; display: flex; flex-direction: column; align-items: center; gap: 12px;">
+        <div>Queue is empty. Configure attackers to test sequence outcomes!</div>
+        <button id="empty-queue-add-btn" class="open-add-attacker-btn" style="font-size: 0.82rem; padding: 7px 14px;">
+          <img src="assets/icons/swords.svg" class="btn-icon" alt=""> + ADD ATTACKER
+        </button>
       </div>
     `;
+    document.getElementById('empty-queue-add-btn')?.addEventListener('click', openSiegeAttackerModal);
     return;
   }
 

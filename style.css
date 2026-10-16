@@ -734,26 +734,15 @@ button, input, select, .toggle-pill, .preset-btn, .quick-unit-btn, .tab-btn {
 /* --- SIEGE / SEQUENCE SIMULATOR STYLES --- */
 .siege-container {
   display: grid;
-  grid-template-columns: 320px 320px 1fr;
+  grid-template-columns: 340px 1fr;
   gap: 16px;
   align-items: start;
 }
 
-@media (max-width: 1180px) {
-  .siege-container {
-    grid-template-columns: 1fr 1fr;
-  }
-  .siege-attackers-panel {
-    grid-column: 1 / -1;
-  }
-}
-
-@media (max-width: 768px) {
+@media (max-width: 860px) {
   .siege-container {
     grid-template-columns: 1fr;
-  }
-  .siege-attackers-panel {
-    grid-column: auto;
+    gap: 14px;
   }
 }
 
@@ -810,6 +799,56 @@ button, input, select, .toggle-pill, .preset-btn, .quick-unit-btn, .tab-btn {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 18px;
+}
+
+.siege-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.queue-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.open-add-attacker-btn {
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  color: #ffffff;
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 10px rgba(2, 132, 199, 0.25);
+  transition: all 0.2s ease;
+}
+
+.open-add-attacker-btn:hover {
+  background: linear-gradient(135deg, #0369a1, #075985);
+  border-color: #38bdf8;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.45);
+  transform: translateY(-1px);
+}
+
+.open-add-attacker-btn:active {
+  transform: scale(0.97);
+}
+
+.open-add-attacker-btn .btn-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
 }
 
 .quick-add-bar {
@@ -2505,5 +2544,95 @@ button, input, select, .toggle-pill, .preset-btn, .quick-unit-btn, .tab-btn {
     min-height: 42px;
   }
 }
+
+/* ==========================================================================
+   FLOATING ATTACKER MODAL (SIEGE PLANNER)
+   ========================================================================== */
+
+.floating-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.floating-modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.floating-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 9, 12, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.floating-card-dialog {
+  position: relative;
+  z-index: 2;
+  background: var(--bg-card);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 25px rgba(2, 132, 199, 0.2);
+  width: 100%;
+  max-width: 440px;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  transform: scale(0.95);
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.floating-modal-overlay.active .floating-card-dialog {
+  transform: scale(1);
+}
+
+.floating-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 10px;
+}
+
+.floating-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: var(--text-main);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+@media (max-width: 640px) {
+  .floating-modal-overlay {
+    padding: 10px;
+  }
+  .floating-card-dialog {
+    padding: 14px 12px;
+    gap: 10px;
+    max-height: 94vh;
+  }
+  .open-add-attacker-btn {
+    padding: 6px 11px;
+    font-size: 0.76rem;
+  }
+}
+
 
 
