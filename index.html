@@ -93,7 +93,7 @@
           <!-- HP Controller -->
           <div class="hp-control-box">
             <div class="hp-top-row">
-              <span class="hp-title">Health Points</span>
+              <span class="hp-title">Initial Health</span>
               <span class="hp-digits"><span id="atk-hp-current">10</span> / <span id="atk-hp-max">10</span> HP</span>
             </div>
             <div class="hp-bar-track">
@@ -105,6 +105,23 @@
               <button class="preset-btn" data-target="atk" data-action="minus1">-1 HP</button>
               <button class="preset-btn" data-target="atk" data-action="half">Half</button>
               <button class="preset-btn" data-target="atk" data-action="one">1 HP</button>
+            </div>
+
+            <!-- Aftermath Health Bar -->
+            <div class="aftermath-hp-section">
+              <div class="hp-top-row aftermath-row">
+                <span class="hp-title aftermath-title">
+                  <span class="dot-indicator"></span> Aftermath Health
+                </span>
+                <span id="atk-aftermath-digits" class="aftermath-digits">10 / 10 HP</span>
+              </div>
+              <div class="aftermath-bar-track">
+                <div id="atk-aftermath-bar" class="aftermath-bar-fill" style="width: 100%;"></div>
+              </div>
+              <div id="atk-death-badge" class="unit-death-badge" style="display: none;">
+                <img src="assets/icons/skull.png" class="death-skull-img" alt="Killed">
+                <span>UNIT ELIMINATED IN DUEL</span>
+              </div>
             </div>
           </div>
 
@@ -242,7 +259,7 @@
           <!-- HP Controller -->
           <div class="hp-control-box">
             <div class="hp-top-row">
-              <span class="hp-title">Health Points</span>
+              <span class="hp-title">Initial Health</span>
               <span class="hp-digits"><span id="def-hp-current">10</span> / <span id="def-hp-max">10</span> HP</span>
             </div>
             <div class="hp-bar-track">
@@ -254,6 +271,23 @@
               <button class="preset-btn" data-target="def" data-action="minus1">-1 HP</button>
               <button class="preset-btn" data-target="def" data-action="half">Half</button>
               <button class="preset-btn" data-target="def" data-action="one">1 HP</button>
+            </div>
+
+            <!-- Aftermath Health Bar -->
+            <div class="aftermath-hp-section">
+              <div class="hp-top-row aftermath-row">
+                <span class="hp-title aftermath-title">
+                  <span class="dot-indicator"></span> Aftermath Health
+                </span>
+                <span id="def-aftermath-digits" class="aftermath-digits">10 / 10 HP</span>
+              </div>
+              <div class="aftermath-bar-track">
+                <div id="def-aftermath-bar" class="aftermath-bar-fill" style="width: 100%;"></div>
+              </div>
+              <div id="def-death-badge" class="unit-death-badge" style="display: none;">
+                <img src="assets/icons/skull.png" class="death-skull-img" alt="Killed">
+                <span>UNIT ELIMINATED IN DUEL</span>
+              </div>
             </div>
           </div>
 

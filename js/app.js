@@ -514,6 +514,79 @@ function updateSkirmishUI() {
   document.getElementById('math-def-force').textContent = combatResult.stats.defenseForce;
   document.getElementById('math-total-force').textContent = combatResult.stats.totalForce;
   document.getElementById('math-def-bonus').textContent = `${combatResult.stats.effectiveDefenseBonus}x`;
+
+  // --- AFTERMATH SECOND HEALTH BARS & SKULL OVERLAYS ---
+  // 1. Attacker Aftermath
+  const atkAfterHp = combatResult.attackerRemainingHp;
+  const atkAfterPct = Math.max(0, Math.round((atkAfterHp / state.attacker.maxHp) * 100));
+  const atkAfterBar = document.getElementById('atk-aftermath-bar');
+  const atkAfterDigits = document.getElementById('atk-aftermath-digits');
+  const atkDeathBadge = document.getElementById('atk-death-badge');
+
+  if (atkAfterBar) {
+    atkAfterBar.style.width = `${atkAfterPct}%`;
+    atkAfterBar.classList.toggle('bar-fatal', combatResult.attackerKilled);
+  }
+
+  if (atkAfterDigits) {
+    if (combatResult.attackerKilled) {
+      atkAfterDigits.className = 'aftermath-digits lethal-text';
+      atkAfterDigits.innerHTML = `<img src="assets/icons/skull.png" class="skull-mini-icon" alt="Skull"> 0 / ${state.attacker.maxHp} HP (-${combatResult.defenderRetaliationDealt} dmg)`;
+    } else {
+      atkAfterDigits.className = 'aftermath-digits';
+      const dmgDiff = combatResult.defenderRetaliationDealt;
+      const dmgTag = dmgDiff > 0 ? `<span class="dmg-taken-tag">-${dmgDiff} dmg</span>` : `<span style="color: var(--text-dim); font-size: 0.72rem;">(0 dmg)</span>`;
+      atkAfterDigits.innerHTML = `<strong>${atkAfterHp}</strong> / ${state.attacker.maxHp} HP ${dmgTag}`;
+    }
+  }
+
+  if (atkDeathBadge) {
+    atkDeathBadge.style.display = combatResult.attackerKilled ? 'flex' : 'none';
+  }
+
+  // 2. Defender Aftermath
+  const defAfterHp = combatResult.defenderRemainingHp;
+  const defAfterPct = Math.max(0, Math.round((defAfterHp / state.defender.maxHp) * 100));
+  const defAfterBar = document.getElementById('def-aftermath-bar');
+  const defAfterDigits = document.getElementById('def-aftermath-digits');
+  const defDeathBadge = document.getElementById('def-death-badge');
+
+  if (defAfterBar) {
+    defAfterBar.style.width = `${defAfterPct}%`;
+    defAfterBar.classList.toggle('bar-fatal', combatResult.defenderKilled);
+  }
+
+  if (defAfterDigits) {
+    if (combatResult.defenderKilled) {
+      defAfterDigits.className = 'aftermath-digits lethal-text';
+      defAfterDigits.innerHTML = `<img src="assets/icons/skull.png" class="skull-mini-icon" alt="Skull"> 0 / ${state.defender.maxHp} HP (-${combatResult.attackerDamageDealt} dmg)`;
+    } else {
+      defAfterDigits.className = 'aftermath-digits';
+      const dmgDiff = combatResult.attackerDamageDealt;
+      const dmgTag = dmgDiff > 0 ? `<span class="dmg-taken-tag">-${dmgDiff} dmg</span>` : `<span style="color: var(--text-dim); font-size: 0.72rem;">(0 dmg)</span>`;
+      defAfterDigits.innerHTML = `<strong>${defAfterHp}</strong> / ${state.defender.maxHp} HP ${dmgTag}`;
+    }
+  }
+
+  if (defDeathBadge) {
+    defDeathBadge.style.display = combatResult.defenderKilled ? 'flex' : 'none';
+  }
+
+  // 3. Large Unit Portrait Skull Overlays
+  const atkPortraitEl = document.getElementById('attacker-icon');
+  const defPortraitEl = document.getElementById('defender-icon');
+  if (atkPortraitEl) {
+    atkPortraitEl.innerHTML = `
+      <img src="${atkImgUrl}" alt="${atkUnit.name}" onerror="this.onerror=null; this.src='assets/units/${atkUnit.id}.png';">
+      ${combatResult.attackerKilled ? '<div class="portrait-skull-overlay" title="Eliminated in duel"><img src="assets/icons/skull.png" alt="Dead"></div>' : ''}
+    `;
+  }
+  if (defPortraitEl) {
+    defPortraitEl.innerHTML = `
+      <img src="${defImgUrl}" alt="${defUnit.name}" onerror="this.onerror=null; this.src='assets/units/${defUnit.id}.png';">
+      ${combatResult.defenderKilled ? '<div class="portrait-skull-overlay" title="Eliminated in duel"><img src="assets/icons/skull.png" alt="Dead"></div>' : ''}
+    `;
+  }
 }
 
 // --- FORMULA ACCORDION ---
