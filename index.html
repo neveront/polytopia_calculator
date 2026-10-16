@@ -27,9 +27,6 @@
         <button class="tab-btn" data-tab="siege">
           <img src="assets/icons/city_wall.png" class="tab-icon" alt=""> Siege Planner
         </button>
-        <button class="tab-btn" data-tab="matrix">
-          <img src="assets/icons/range.svg" class="tab-icon" alt=""> Hits-to-Kill
-        </button>
         <button class="tab-btn" data-tab="codex">
           <img src="assets/icons/star.png" class="tab-icon" alt=""> Unit Codex
         </button>
@@ -325,6 +322,36 @@
               </label>
             </div>
           </div>
+
+          <!-- Hits-to-Kill Reference inside Defender Card -->
+          <div class="defender-htk-section">
+            <div class="htk-header">
+              <div class="htk-title">
+                <img src="assets/icons/range.svg" class="htk-header-icon" alt="">
+                <span>Hits-to-Kill</span>
+              </div>
+              <span id="defender-htk-subtitle" class="htk-subtitle">vs 10 HP • No Bonus</span>
+            </div>
+
+            <div class="htk-table-scroll">
+              <table class="defender-htk-table">
+                <thead>
+                  <tr>
+                    <th>Attacker</th>
+                    <th>Dmg</th>
+                    <th>Retal</th>
+                    <th>Hits</th>
+                  </tr>
+                </thead>
+                <tbody id="defender-htk-body">
+                  <!-- Dynamically populated in real time -->
+                </tbody>
+              </table>
+            </div>
+            <div class="htk-footer-tip">
+              <span>💡 Click unit to test as attacker</span>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -460,43 +487,7 @@
       </div>
     </section>
 
-    <!-- ==================== TAB 3: HITS-TO-KILL MATRIX ==================== -->
-    <section id="matrix-view" class="view-section">
-      <div class="matrix-container">
-        <div class="matrix-header">
-          <div>
-            <h2 style="font-size: 1.25rem; font-weight: 800;">Hits-to-Kill Reference</h2>
-            <p style="font-size: 0.8rem; color: var(--text-muted);">
-              Number of direct attacks required from each unit type to eliminate the currently selected defender.
-            </p>
-          </div>
-          <div style="font-size: 0.82rem; color: var(--text-muted); background: var(--bg-input); padding: 8px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-            Target: <strong id="matrix-target-name" style="color: var(--text-main);">Defender (15 HP)</strong> | Bonus: <strong id="matrix-target-bonus" style="color: var(--text-main);">City Wall (4.0x)</strong>
-          </div>
-        </div>
-
-        <div class="matrix-table-wrap">
-          <table class="matrix-table">
-            <thead>
-              <tr>
-                <th>Attacking Unit</th>
-                <th>Tribe / Class</th>
-                <th>Unit Attack</th>
-                <th>Damage / Hit</th>
-                <th>Retaliation Received</th>
-                <th>Attacker Survives?</th>
-                <th>Hits to Kill</th>
-              </tr>
-            </thead>
-            <tbody id="matrix-table-body">
-              <!-- Dynamically populated -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- ==================== TAB 4: UNIT CODEX ==================== -->
+    <!-- ==================== TAB 3: UNIT CODEX ==================== -->
     <section id="codex-view" class="view-section">
       <div class="codex-controls">
         <input type="text" id="codex-search" class="search-input" placeholder="Search units, skills, or tribes...">

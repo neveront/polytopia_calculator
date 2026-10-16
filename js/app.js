@@ -90,10 +90,6 @@ function switchTab(tabName) {
   });
   const activeSec = document.getElementById(`${tabName}-view`);
   if (activeSec) activeSec.classList.add('active');
-
-  if (tabName === 'matrix') {
-    renderHitsToKillMatrix();
-  }
 }
 
 // --- POPULATE DROPDOWNS ---
@@ -589,6 +585,9 @@ function updateSkirmishUI() {
       ${combatResult.defenderKilled ? '<div class="portrait-skull-floating" title="Eliminated in duel"><img src="assets/icons/skull.png" class="floating-skull-img" alt="Dead"><span>Lethal</span></div>' : ''}
     `;
   }
+
+  // 4. Update Defender Card Hits-to-Kill Reference Table
+  renderDefenderHitsToKill();
 }
 
 // --- FORMULA ACCORDION ---
@@ -969,20 +968,21 @@ function getPermutations(arr) {
   return result;
 }
 
-// --- HITS-TO-KILL MATRIX ---
-function renderHitsToKillMatrix() {
-  const targetUnit = getUnitById(state.defender.unitId);
-  const matrixTargetName = document.getElementById('matrix-target-name');
-  const matrixTargetBonus = document.getElementById('matrix-target-bonus');
-  const tbody = document.getElementById('matrix-table-body');
+// --- HITS-TO-KILL INSIDE DEFENDER CARD ---
+function renderDefenderHitsToKill() {
+  const tbody = document.getElementById('defender-htk-body');
+  if (!tbody) return;
 
-  const defTribeText = state.defender.tribeId !== 'all' ? ` (${getTribeName(state.defender.tribeId)})` : '';
-  matrixTargetName.textContent = `${targetUnit.name}${defTribeText} (${state.defender.currentHp} HP)`;
-  matrixTargetBonus.textContent = state.defender.defenseBonusType === 'wall'
-    ? 'City Wall (4.0x)'
-    : state.defender.defenseBonusType === 'terrain'
-    ? 'Terrain (1.5x)'
-    : 'No Bonus (1.0x)';
+  const targetUnit = getUnitById(state.defender.unitId);
+  const defHpLabel = document.getElementById('defender-htk-subtitle');
+  if (defHpLabel) {
+    const bonusText = state.defender.defenseBonusType === 'wall'
+      ? 'Wall (4.0x)'
+      : state.defender.defenseBonusType === 'terrain'
+      ? 'Terrain (1.5x)'
+      : 'No Bonus (1.0x)';
+    defHpLabel.textContent = `vs ${state.defender.currentHp} HP • ${bonusText}`;
+  }
 
   tbody.innerHTML = '';
 
@@ -995,11 +995,13 @@ function renderHitsToKillMatrix() {
     isFrozen: state.defender.isFrozen,
   };
 
-  // Test all offensive units
-  const offensiveUnits = UNITS.filter(u => u.attack > 0);
+  // Get offensive units available for current attacker tribe (or standard if 'all')
+  let offensiveUnits = getUnitsForTribe(state.attacker.tribeId).filter(u => u.attack > 0);
+  if (offensiveUnits.length === 0) {
+    offensiveUnits = UNITS.filter(u => u.attack > 0);
+  }
 
-  offensiveUnits.forEach(atk => {
-    // 1st hit calculation (with target at current HP)
+  const calculatedRows = offensiveUnits.map(atk => {
     const distance = atk.range > 1 ? atk.range : 1;
     const firstHit = calculateCombat(
       { ...atk, currentHp: atk.maxHp },
@@ -1007,7 +1009,6 @@ function renderHitsToKillMatrix() {
       { distance }
     );
 
-    // Cumulative simulation to find hits to kill
     let hitsNeeded = 0;
     let simTargetHp = defenderState.currentHp;
     let simAttackerHp = atk.maxHp;
@@ -1028,20 +1029,65 @@ function renderHitsToKillMatrix() {
       if (simTargetHp <= 0) break;
     }
 
+    return {
+      atk,
+      firstHit,
+      hitsNeeded,
+      dmg: firstHit.attackerDamageDealt,
+      retal: firstHit.canRetaliate ? firstHit.defenderRetaliationDealt : 0,
+      retalFatal: firstHit.attackerKilled
+    };
+  });
+
+  // Sort rows: hitsNeeded ascending (fastest kills first), then damage descending
+  calculatedRows.sort((a, b) => {
+    if (a.hitsNeeded !== b.hitsNeeded) return a.hitsNeeded - b.hitsNeeded;
+    return b.dmg - a.dmg;
+  });
+
+  calculatedRows.forEach(item => {
+    const { atk, firstHit, hitsNeeded, retalFatal, dmg, retal } = item;
     const tr = document.createElement('tr');
-    const badgeClass = hitsNeeded === 1 ? 'hits-1' : hitsNeeded <= 2 ? 'hits-2' : hitsNeeded <= 3 ? 'hits-3' : 'hits-high';
+    tr.className = 'htk-row';
+    tr.title = `Click to test ${atk.name} as current attacker`;
+
+    if (state.attacker.unitId === atk.id) {
+      tr.classList.add('htk-row-active');
+    }
+
+    const badgeClass = hitsNeeded === 1 ? 'hits-1' : hitsNeeded === 2 ? 'hits-2' : hitsNeeded === 3 ? 'hits-3' : 'hits-high';
     const atkImgUrl = getUnitImage(atk, state.attacker.tribeId);
-    const atkTribeDisplay = state.attacker.tribeId !== 'all' ? getTribeName(state.attacker.tribeId) : atk.tribe;
+
+    const retalHtml = !firstHit.canRetaliate
+      ? '<span style="color: var(--text-dim); font-size: 0.72rem;">Safe</span>'
+      : retalFatal
+      ? `<span style="color: #ef4444; font-weight: 700;">${retal} <img src="assets/icons/skull.png" class="skull-micro-icon" alt="Dies"></span>`
+      : `<span style="color: #fca5a5;">${retal}</span>`;
 
     tr.innerHTML = `
-      <td><img src="${atkImgUrl}" alt="${atk.name}" class="unit-thumb-sm" style="margin-right: 6px;" onerror="this.onerror=null; this.src='assets/units/${atk.id}.png';"> <strong>${atk.name}</strong></td>
-      <td style="color: var(--text-dim); font-size: 0.8rem;">${atkTribeDisplay}</td>
-      <td>${atk.attack}</td>
-      <td style="color: var(--color-attacker); font-weight: 800;">${firstHit.attackerDamageDealt} dmg</td>
-      <td style="color: var(--color-defender);">${firstHit.canRetaliate ? `${firstHit.defenderRetaliationDealt} dmg` : '0 (Safe)'}</td>
-      <td>${firstHit.attackerKilled ? '<span style="color: #ef4444; font-weight: 700;">No (Dies)</span>' : '<span style="color: #22c55e; font-weight: 700;">Yes</span>'}</td>
+      <td>
+        <div class="htk-unit-col">
+          <img src="${atkImgUrl}" alt="${atk.name}" class="htk-unit-thumb" onerror="this.onerror=null; this.src='assets/units/${atk.id}.png';">
+          <span class="htk-unit-name">${atk.name}</span>
+        </div>
+      </td>
+      <td style="color: var(--color-attacker); font-weight: 700;">${dmg}</td>
+      <td>${retalHtml}</td>
       <td><span class="hits-badge ${badgeClass}">${hitsNeeded} ${hitsNeeded === 1 ? 'Hit' : 'Hits'}</span></td>
     `;
+
+    tr.addEventListener('click', () => {
+      state.attacker.unitId = atk.id;
+      state.attacker.isVeteran = false;
+      state.attacker.maxHp = atk.maxHp;
+      state.attacker.currentHp = atk.maxHp;
+      state.attacker.isRangedDistance = atk.range > 1;
+
+      const atkSelect = document.getElementById('attacker-select');
+      if (atkSelect) atkSelect.value = atk.id;
+
+      updateSkirmishUI();
+    });
 
     tbody.appendChild(tr);
   });
