@@ -682,7 +682,7 @@ function initSiegeEvents() {
 function updateSiegeUI() {
   const targetUnit = getUnitById(state.siege.target.unitId);
   const targetImgUrl = getUnitImage(targetUnit, state.siege.target.tribeId);
-  document.getElementById('siege-target-icon').innerHTML = `<img src="${targetImgUrl}" alt="${targetUnit.name}" onerror="this.onerror=null; this.src='assets/units/${targetUnit.id}.png';">`;
+  document.getElementById('siege-target-icon').innerHTML = `<img src="${targetImgUrl}" alt="${targetUnit.name}" class="main-unit-sprite" onerror="this.onerror=null; this.src='assets/units/${targetUnit.id}.png';">`;
   const targetTribeLabel = state.siege.target.tribeId !== 'all' ? getTribeName(state.siege.target.tribeId) : targetUnit.tribe;
   const targetTribeIcon = getTribeIcon(state.siege.target.tribeId);
   const targetTribeBadgeImg = document.getElementById('siege-tribe-badge-img');
