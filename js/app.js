@@ -350,7 +350,7 @@ function updateSkirmishUI() {
 
   // --- ATTACKER CARD SYNC ---
   const atkImgUrl = getUnitImage(atkUnit, state.attacker.tribeId);
-  document.getElementById('attacker-icon').innerHTML = `<img src="${atkImgUrl}" alt="${atkUnit.name}" onerror="this.onerror=null; this.src='assets/units/${atkUnit.id}.png';">`;
+  document.getElementById('attacker-icon').innerHTML = `<img src="${atkImgUrl}" alt="${atkUnit.name}" class="main-unit-sprite" onerror="this.onerror=null; this.src='assets/units/${atkUnit.id}.png';">`;
   const atkTribeLabel = state.attacker.tribeId !== 'all' ? getTribeName(state.attacker.tribeId) : atkUnit.tribe;
   const atkTribeIcon = getTribeIcon(state.attacker.tribeId);
   const atkTribeBadgeImg = document.getElementById('atk-tribe-badge-img');
@@ -398,7 +398,7 @@ function updateSkirmishUI() {
 
   // --- DEFENDER CARD SYNC ---
   const defImgUrl = getUnitImage(defUnit, state.defender.tribeId);
-  document.getElementById('defender-icon').innerHTML = `<img src="${defImgUrl}" alt="${defUnit.name}" onerror="this.onerror=null; this.src='assets/units/${defUnit.id}.png';">`;
+  document.getElementById('defender-icon').innerHTML = `<img src="${defImgUrl}" alt="${defUnit.name}" class="main-unit-sprite" onerror="this.onerror=null; this.src='assets/units/${defUnit.id}.png';">`;
   const defTribeLabel = state.defender.tribeId !== 'all' ? getTribeName(state.defender.tribeId) : defUnit.tribe;
   const defTribeIcon = getTribeIcon(state.defender.tribeId);
   const defTribeBadgeImg = document.getElementById('def-tribe-badge-img');
@@ -572,19 +572,21 @@ function updateSkirmishUI() {
     defDeathBadge.style.display = combatResult.defenderKilled ? 'flex' : 'none';
   }
 
-  // 3. Large Unit Portrait Skull Overlays
+  // 3. Large Unit Portrait Skull Floating Badge (on top of unit icon, leaving sprite uncovered)
   const atkPortraitEl = document.getElementById('attacker-icon');
   const defPortraitEl = document.getElementById('defender-icon');
   if (atkPortraitEl) {
+    atkPortraitEl.classList.toggle('unit-defeated', combatResult.attackerKilled);
     atkPortraitEl.innerHTML = `
-      <img src="${atkImgUrl}" alt="${atkUnit.name}" onerror="this.onerror=null; this.src='assets/units/${atkUnit.id}.png';">
-      ${combatResult.attackerKilled ? '<div class="portrait-skull-overlay" title="Eliminated in duel"><img src="assets/icons/skull.png" alt="Dead"></div>' : ''}
+      <img src="${atkImgUrl}" alt="${atkUnit.name}" class="main-unit-sprite" onerror="this.onerror=null; this.src='assets/units/${atkUnit.id}.png';">
+      ${combatResult.attackerKilled ? '<div class="portrait-skull-floating" title="Eliminated in duel"><img src="assets/icons/skull.png" class="floating-skull-img" alt="Dead"><span>Lethal</span></div>' : ''}
     `;
   }
   if (defPortraitEl) {
+    defPortraitEl.classList.toggle('unit-defeated', combatResult.defenderKilled);
     defPortraitEl.innerHTML = `
-      <img src="${defImgUrl}" alt="${defUnit.name}" onerror="this.onerror=null; this.src='assets/units/${defUnit.id}.png';">
-      ${combatResult.defenderKilled ? '<div class="portrait-skull-overlay" title="Eliminated in duel"><img src="assets/icons/skull.png" alt="Dead"></div>' : ''}
+      <img src="${defImgUrl}" alt="${defUnit.name}" class="main-unit-sprite" onerror="this.onerror=null; this.src='assets/units/${defUnit.id}.png';">
+      ${combatResult.defenderKilled ? '<div class="portrait-skull-floating" title="Eliminated in duel"><img src="assets/icons/skull.png" class="floating-skull-img" alt="Dead"><span>Lethal</span></div>' : ''}
     `;
   }
 }
