@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Polytopia Combat & Damage Calculator</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="assets/icons/swords.svg">
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="logo-brand">
+        <div class="logo-icon"><img src="assets/icons/swords.svg" alt="Polytopia" class="poly-icon-brand"></div>
+        <div class="logo-text">
+          <h1>POLYTOPIA COMBAT CALCULATOR</h1>
+          <div class="subtitle">Deterministic Battle Simulator & Siege Sequence Planner</div>
+        </div>
+      </div>
+
+      <nav class="nav-tabs" role="tablist">
+        <button class="tab-btn active" data-tab="skirmish">
+          <img src="assets/icons/swords.svg" class="tab-icon" alt=""> 1v1 Skirmish
+        </button>
+        <button class="tab-btn" data-tab="siege">
+          <img src="assets/icons/city_wall.png" class="tab-icon" alt=""> Siege Planner
+        </button>
+        <button class="tab-btn" data-tab="matrix">
+          <img src="assets/icons/range.svg" class="tab-icon" alt=""> Hits-to-Kill
+        </button>
+        <button class="tab-btn" data-tab="codex">
+          <img src="assets/icons/star.png" class="tab-icon" alt=""> Unit Codex
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content">
+
+    <!-- ==================== TAB 1: 1v1 SKIRMISH ==================== -->
+    <section id="skirmish-view" class="view-section active">
+
+      <!-- Mouse Wheel Scroll Tip Banner -->
+      <div class="scroll-hint-banner">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <img src="assets/icons/star.png" class="hint-icon-img" alt="">
+          <span><strong>Scroll Wheel Quick Controls:</strong> Hover over any unit portrait, select dropdown, HP bar, or defense bonus and use your <strong>Mouse Scroll Wheel</strong> to instantly change them!</span>
+        </div>
+        <span class="scroll-badge">Scroll Supported</span>
+      </div>
+
+      <div class="skirmish-grid">
+
+        <!-- ATTACKER CARD -->
+        <div class="unit-card attacker-card">
+          <div class="card-header">
+            <span class="card-role-badge"><img src="assets/icons/attack.svg" class="badge-icon" alt=""> Attacker</span>
+            <div id="attacker-tribe-tag" class="text-dim" style="font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+              <img id="atk-tribe-badge-img" src="assets/icons/star.png" class="tribe-badge-mini" alt="">
+              <span id="atk-tribe-name-label">Standard</span>
+            </div>
+          </div>
+
+          <div class="card-top-info">
+            <div id="attacker-icon" class="unit-icon-large" title="Scroll wheel to cycle through units">
+              <img src="assets/icons/swords.svg" alt="Attacker">
+            </div>
+            <div class="unit-select-wrap">
+              <div style="margin-bottom: 6px;">
+                <label for="attacker-tribe-select">Tribe</label>
+                <select id="attacker-tribe-select" class="custom-select" title="Scroll wheel to cycle tribe"></select>
+              </div>
+              <div>
+                <label for="attacker-select">Unit</label>
+                <select id="attacker-select" class="custom-select" title="Scroll wheel to cycle units"></select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Base Stats -->
+          <div class="stat-chips-grid">
+            <div class="stat-chip" title="Attack">
+              <div class="label"><img src="assets/icons/attack.svg" class="chip-svg" alt=""> Attack</div>
+              <div id="atk-stat-attack" class="val">2</div>
+            </div>
+            <div class="stat-chip" title="Defense">
+              <div class="label"><img src="assets/icons/defense.svg" class="chip-svg" alt=""> Defense</div>
+              <div id="atk-stat-defense" class="val">2</div>
+            </div>
+            <div class="stat-chip" title="Range">
+              <div class="label"><img src="assets/icons/range.svg" class="chip-svg" alt=""> Range</div>
+              <div id="atk-stat-range" class="val">1</div>
+            </div>
+            <div class="stat-chip" title="Movement">
+              <div class="label"><img src="assets/icons/movement.svg" class="chip-svg" alt=""> Move</div>
+              <div id="atk-stat-movement" class="val">1</div>
+            </div>
+          </div>
+
+          <!-- HP Controller -->
+          <div class="hp-control-box">
+            <div class="hp-top-row">
+              <span class="hp-title">Health Points</span>
+              <span class="hp-digits"><span id="atk-hp-current">10</span> / <span id="atk-hp-max">10</span> HP</span>
+            </div>
+            <div class="hp-bar-track">
+              <div id="atk-hp-bar" class="hp-bar-fill" style="width: 100%;"></div>
+            </div>
+            <input type="range" id="atk-hp-slider" class="hp-slider" min="1" max="10" value="10">
+            <div class="hp-presets">
+              <button class="preset-btn" data-target="atk" data-action="full">Full</button>
+              <button class="preset-btn" data-target="atk" data-action="minus1">-1 HP</button>
+              <button class="preset-btn" data-target="atk" data-action="half">Half</button>
+              <button class="preset-btn" data-target="atk" data-action="one">1 HP</button>
+            </div>
+          </div>
+
+          <!-- Attacker Toggles -->
+          <div class="modifier-section">
+            <div class="toggle-group">
+              <label id="atk-veteran-label" class="toggle-pill">
+                <input type="checkbox" id="atk-veteran-toggle">
+                <img src="assets/icons/star.png" class="pill-icon" alt="">
+                <span>Veteran (+5 HP)</span>
+              </label>
+
+              <label id="atk-distance-label" class="toggle-pill" style="display: none;">
+                <input type="checkbox" id="atk-distance-toggle">
+                <img src="assets/icons/range.svg" class="pill-icon" alt="">
+                <span>Ranged Hit</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- OUTCOME COLUMN (CENTER) -->
+        <div class="outcome-column">
+          <div class="outcome-card">
+            <div class="outcome-title">Combat Outcome</div>
+            <div id="outcome-badge" class="outcome-status-badge status-survived">MUTUAL EXCHANGE</div>
+
+            <div class="damage-numbers-row">
+              <div class="dmg-stat-box attacker-dmg">
+                <div class="dmg-lbl">Attacker Deals</div>
+                <div id="res-damage-dealt" class="dmg-val">5</div>
+                <div id="res-defender-hp" class="hp-remaining">Defender: 5 HP left</div>
+              </div>
+
+              <div class="dmg-stat-box retal-dmg">
+                <div class="dmg-lbl">Defender Retaliates</div>
+                <div id="res-retal-dealt" class="dmg-val">5</div>
+                <div id="res-attacker-hp" class="hp-remaining">Attacker: 5 HP left</div>
+              </div>
+            </div>
+
+            <div id="res-retaliation-note" class="retaliation-note">
+              Defender counter-attacks simultaneously
+            </div>
+
+            <button id="swap-roles-btn" class="swap-units-btn">
+              <span>⇄</span> Swap Attacker & Defender
+            </button>
+
+            <button id="send-to-siege-btn" class="send-siege-btn">
+              <img src="assets/icons/city_wall.png" class="btn-icon" alt=""> Send Target to Siege Planner
+            </button>
+          </div>
+
+          <!-- Formula Breakdown Accordion -->
+          <div class="formula-accordion">
+            <div id="formula-toggle" class="accordion-header">
+              <span><img src="assets/icons/swords.svg" style="width:14px;height:14px;vertical-align:-1px;margin-right:4px;" alt=""> Math & Formula Breakdown</span>
+              <span id="formula-arrow">▼</span>
+            </div>
+            <div id="formula-content" class="accordion-content">
+              <div class="math-row">
+                <span>Attacker Force:</span>
+                <span id="math-atk-force" class="math-val">2.00</span>
+              </div>
+              <div class="math-row">
+                <span>Defender Force:</span>
+                <span id="math-def-force" class="math-val">2.00</span>
+              </div>
+              <div class="math-row">
+                <span>Combined Force:</span>
+                <span id="math-total-force" class="math-val">4.00</span>
+              </div>
+              <div class="math-row">
+                <span>Effective Defense Multiplier:</span>
+                <span id="math-def-bonus" class="math-val">1.0x</span>
+              </div>
+              <div class="math-row">
+                <span>Accelerator Constant:</span>
+                <span class="math-val">4.5</span>
+              </div>
+              <p style="font-size: 0.72rem; color: var(--text-dim); margin-top: 8px;">
+                Formula: round((Force / TotalForce) * Stat * 4.5)
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- DEFENDER CARD -->
+        <div class="unit-card defender-card">
+          <div class="card-header">
+            <span class="card-role-badge"><img src="assets/icons/defense.svg" class="badge-icon" alt=""> Defender</span>
+            <div id="defender-tribe-tag" class="text-dim" style="font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+              <img id="def-tribe-badge-img" src="assets/icons/star.png" class="tribe-badge-mini" alt="">
+              <span id="def-tribe-name-label">Standard</span>
+            </div>
+          </div>
+
+          <div class="card-top-info">
+            <div id="defender-icon" class="unit-icon-large" title="Scroll wheel to cycle through units">
+              <img src="assets/icons/defense.svg" alt="Defender">
+            </div>
+            <div class="unit-select-wrap">
+              <div style="margin-bottom: 6px;">
+                <label for="defender-tribe-select">Tribe</label>
+                <select id="defender-tribe-select" class="custom-select" title="Scroll wheel to cycle tribe"></select>
+              </div>
+              <div>
+                <label for="defender-select">Unit</label>
+                <select id="defender-select" class="custom-select" title="Scroll wheel to cycle units"></select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Base Stats -->
+          <div class="stat-chips-grid">
+            <div class="stat-chip" title="Attack">
+              <div class="label"><img src="assets/icons/attack.svg" class="chip-svg" alt=""> Attack</div>
+              <div id="def-stat-attack" class="val">2</div>
+            </div>
+            <div class="stat-chip" title="Defense">
+              <div class="label"><img src="assets/icons/defense.svg" class="chip-svg" alt=""> Defense</div>
+              <div id="def-stat-defense" class="val">2</div>
+            </div>
+            <div class="stat-chip" title="Range">
+              <div class="label"><img src="assets/icons/range.svg" class="chip-svg" alt=""> Range</div>
+              <div id="def-stat-range" class="val">1</div>
+            </div>
+            <div class="stat-chip" title="Movement">
+              <div class="label"><img src="assets/icons/movement.svg" class="chip-svg" alt=""> Move</div>
+              <div id="def-stat-movement" class="val">1</div>
+            </div>
+          </div>
+
+          <!-- HP Controller -->
+          <div class="hp-control-box">
+            <div class="hp-top-row">
+              <span class="hp-title">Health Points</span>
+              <span class="hp-digits"><span id="def-hp-current">10</span> / <span id="def-hp-max">10</span> HP</span>
+            </div>
+            <div class="hp-bar-track">
+              <div id="def-hp-bar" class="hp-bar-fill" style="width: 100%;"></div>
+            </div>
+            <input type="range" id="def-hp-slider" class="hp-slider" min="1" max="10" value="10">
+            <div class="hp-presets">
+              <button class="preset-btn" data-target="def" data-action="full">Full</button>
+              <button class="preset-btn" data-target="def" data-action="minus1">-1 HP</button>
+              <button class="preset-btn" data-target="def" data-action="half">Half</button>
+              <button class="preset-btn" data-target="def" data-action="one">1 HP</button>
+            </div>
+          </div>
+
+          <!-- Defender Modifiers & Conditions -->
+          <div class="modifier-section">
+            <div class="bonus-select-box">
+              <label for="def-bonus-select">Defense Position / Terrain Bonus</label>
+              <select id="def-bonus-select" class="custom-select">
+                <option value="none">No Defense Bonus (1.0x)</option>
+                <option value="terrain">Forest / Mountain / Water / City (1.5x)</option>
+                <option value="wall">City Wall (4.0x)</option>
+              </select>
+              <div id="def-wall-warning" class="wall-warning">
+                <img src="assets/icons/star.png" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px;" alt=""> Notice: This unit lacks the "Fortify" skill and does not receive City Wall bonuses in-game.
+              </div>
+            </div>
+
+            <div class="toggle-group">
+              <label id="def-veteran-label" class="toggle-pill">
+                <input type="checkbox" id="def-veteran-toggle">
+                <img src="assets/icons/star.png" class="pill-icon" alt="">
+                <span>Veteran (+5 HP)</span>
+              </label>
+
+              <label id="def-poison-label" class="toggle-pill pill-poison">
+                <input type="checkbox" id="def-poison-toggle">
+                <img src="assets/icons/poison.svg" class="pill-icon" alt="">
+                <span>Poisoned</span>
+              </label>
+
+              <label id="def-frozen-label" class="toggle-pill pill-frozen">
+                <input type="checkbox" id="def-frozen-toggle">
+                <img src="assets/icons/freeze.png" class="pill-icon" alt="">
+                <span>Frozen</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: SIEGE PLANNER ==================== -->
+    <section id="siege-view" class="view-section">
+      <div class="siege-container">
+
+        <!-- SIEGE TARGET CARD (LEFT) -->
+        <div class="siege-target-card">
+          <div class="card-header">
+            <span class="card-role-badge"><img src="assets/icons/city_wall.png" class="badge-icon" alt=""> Siege Target</span>
+            <div id="siege-target-tribe-tag" class="text-dim" style="font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+              <img id="siege-tribe-badge-img" src="assets/icons/star.png" class="tribe-badge-mini" alt="">
+              <span id="siege-tribe-name-label">Standard</span>
+            </div>
+          </div>
+
+          <div class="card-top-info">
+            <div id="siege-target-icon" class="unit-icon-large" title="Scroll wheel to cycle through units">
+              <img src="assets/icons/defense.svg" alt="Target">
+            </div>
+            <div class="unit-select-wrap">
+              <div style="margin-bottom: 6px;">
+                <label for="siege-target-tribe-select">Target Tribe</label>
+                <select id="siege-target-tribe-select" class="custom-select" title="Scroll wheel to cycle tribe"></select>
+              </div>
+              <div>
+                <label for="siege-target-select">Defending Target</label>
+                <select id="siege-target-select" class="custom-select" title="Scroll wheel to cycle units"></select>
+              </div>
+            </div>
+          </div>
+
+          <div class="hp-control-box">
+            <div class="hp-top-row">
+              <span class="hp-title">Target Health</span>
+              <span class="hp-digits"><span id="siege-target-hp-cur">15</span> / <span id="siege-target-hp-max">15</span> HP</span>
+            </div>
+            <div class="hp-bar-track">
+              <div id="siege-target-hp-bar" class="hp-bar-fill" style="width: 100%;"></div>
+            </div>
+            <input type="range" id="siege-target-hp-slider" class="hp-slider" min="1" max="15" value="15">
+          </div>
+
+          <div class="bonus-select-box" style="margin-bottom: 12px;">
+            <label for="siege-target-bonus">Terrain / City Defense</label>
+            <select id="siege-target-bonus" class="custom-select">
+              <option value="none">No Bonus (1.0x)</option>
+              <option value="terrain">Forest / Mountain / Water (1.5x)</option>
+              <option value="wall" selected>City Wall (4.0x)</option>
+            </select>
+          </div>
+
+          <div class="toggle-group">
+            <label class="toggle-pill pill-poison">
+              <input type="checkbox" id="siege-target-poison">
+              <img src="assets/icons/poison.svg" class="pill-icon" alt="">
+              <span>Poisoned</span>
+            </label>
+            <label class="toggle-pill pill-frozen">
+              <input type="checkbox" id="siege-target-frozen">
+              <img src="assets/icons/freeze.png" class="pill-icon" alt="">
+              <span>Frozen</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- ATTACKERS QUEUE & TIMELINE (RIGHT) -->
+        <div class="siege-attackers-panel">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <h3 style="font-size: 1.1rem; font-weight: 800;">Assault Queue</h3>
+              <p style="font-size: 0.78rem; color: var(--text-muted);">Add units to test attack sequences and calculate cumulative retaliation.</p>
+            </div>
+            <button id="clear-queue-btn" class="preset-btn" style="padding: 6px 12px;">✕ Clear Queue</button>
+          </div>
+
+          <!-- Quick Add Buttons -->
+          <div class="quick-add-bar">
+            <span style="font-size: 0.75rem; color: var(--text-dim); align-self: center; text-transform: uppercase; font-weight: 700; margin-right: 4px;">+ Add:</span>
+            <button class="quick-unit-btn" data-unit="warrior"><img src="assets/units/warrior.png" class="unit-thumb-sm" alt="Warrior"> Warrior</button>
+            <button class="quick-unit-btn" data-unit="rider"><img src="assets/units/rider.png" class="unit-thumb-sm" alt="Rider"> Rider</button>
+            <button class="quick-unit-btn" data-unit="archer"><img src="assets/units/archer.png" class="unit-thumb-sm" alt="Archer"> Archer</button>
+            <button class="quick-unit-btn" data-unit="swordsman"><img src="assets/units/swordsman.png" class="unit-thumb-sm" alt="Swordsman"> Swordsman</button>
+            <button class="quick-unit-btn" data-unit="catapult"><img src="assets/units/catapult.png" class="unit-thumb-sm" alt="Catapult"> Catapult</button>
+            <button class="quick-unit-btn" data-unit="knight"><img src="assets/units/knight.png" class="unit-thumb-sm" alt="Knight"> Knight</button>
+            <button class="quick-unit-btn" data-unit="giant"><img src="assets/units/giant.png" class="unit-thumb-sm" alt="Giant"> Giant</button>
+          </div>
+
+          <!-- Queue Items List -->
+          <div id="siege-queue-list" class="attackers-queue">
+            <!-- Dynamically populated -->
+          </div>
+
+          <!-- Optimization Action -->
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button id="optimize-sequence-btn" class="optimize-btn">
+              <img src="assets/icons/boost.png" class="btn-icon" alt=""> Auto-Optimize Sequence (Minimize Casualties)
+            </button>
+          </div>
+
+          <!-- Siege Outcome Summary -->
+          <div class="siege-summary-bar">
+            <div class="summary-metric">
+              <div class="metric-lbl">Target Status</div>
+              <div id="siege-summary-target-status" class="metric-val">ELIMINATED</div>
+            </div>
+            <div class="summary-metric">
+              <div class="metric-lbl">Target Remaining HP</div>
+              <div id="siege-summary-remaining-hp" class="metric-val">0 HP</div>
+            </div>
+            <div class="summary-metric">
+              <div class="metric-lbl">Units Lost (Fatalities)</div>
+              <div id="siege-summary-losses" class="metric-val">0</div>
+            </div>
+            <div class="summary-metric">
+              <div class="metric-lbl">Total Friendly Dmg Taken</div>
+              <div id="siege-summary-dmg-taken" class="metric-val">0</div>
+            </div>
+          </div>
+
+          <!-- Step-by-Step Combat Log -->
+          <div class="siege-timeline">
+            <h4 style="font-size: 0.82rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px;">Attack Sequence Log</h4>
+            <div id="siege-timeline-steps">
+              <!-- Steps rendered here -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: HITS-TO-KILL MATRIX ==================== -->
+    <section id="matrix-view" class="view-section">
+      <div class="matrix-container">
+        <div class="matrix-header">
+          <div>
+            <h2 style="font-size: 1.25rem; font-weight: 800;">Hits-to-Kill Reference</h2>
+            <p style="font-size: 0.8rem; color: var(--text-muted);">
+              Number of direct attacks required from each unit type to eliminate the currently selected defender.
+            </p>
+          </div>
+          <div style="font-size: 0.82rem; color: var(--text-muted); background: var(--bg-input); padding: 8px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+            Target: <strong id="matrix-target-name" style="color: var(--text-main);">Defender (15 HP)</strong> | Bonus: <strong id="matrix-target-bonus" style="color: var(--text-main);">City Wall (4.0x)</strong>
+          </div>
+        </div>
+
+        <div class="matrix-table-wrap">
+          <table class="matrix-table">
+            <thead>
+              <tr>
+                <th>Attacking Unit</th>
+                <th>Tribe / Class</th>
+                <th>Unit Attack</th>
+                <th>Damage / Hit</th>
+                <th>Retaliation Received</th>
+                <th>Attacker Survives?</th>
+                <th>Hits to Kill</th>
+              </tr>
+            </thead>
+            <tbody id="matrix-table-body">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 4: UNIT CODEX ==================== -->
+    <section id="codex-view" class="view-section">
+      <div class="codex-controls">
+        <input type="text" id="codex-search" class="search-input" placeholder="Search units, skills, or tribes...">
+        <div class="codex-skin-box" style="display: flex; align-items: center; gap: 8px;">
+          <img id="codex-tribe-badge-img" src="assets/icons/star.png" class="tribe-badge-mini" alt="">
+          <label for="codex-tribe-select" style="font-size: 0.8rem; color: var(--text-muted); white-space: nowrap;">Tribe Skin:</label>
+          <select id="codex-tribe-select" class="custom-select" style="padding: 6px 12px; font-size: 0.85rem; width: auto;"></select>
+        </div>
+        <div class="tribe-filter-pills" id="codex-tribe-filters">
+          <button class="filter-pill active" data-filter="all"><img src="assets/icons/star.png" class="pill-icon-sm" alt=""> All</button>
+          <button class="filter-pill" data-filter="Standard Tribes"><img src="assets/icons/swords.svg" class="pill-icon-sm" alt=""> Standard</button>
+          <button class="filter-pill" data-filter="Naval (Ocean Update)"><img src="assets/icons/tribes/aquarion.png" class="pill-icon-sm" alt=""> Naval</button>
+          <button class="filter-pill" data-filter="Cymanti"><img src="assets/icons/tribes/cymanti.png" class="pill-icon-sm" alt=""> Cymanti</button>
+          <button class="filter-pill" data-filter="∑∫ỹriȱŋ"><img src="assets/icons/tribes/elyrion.png" class="pill-icon-sm" alt=""> Elyrion</button>
+          <button class="filter-pill" data-filter="Polaris"><img src="assets/icons/tribes/polaris.png" class="pill-icon-sm" alt=""> Polaris</button>
+          <button class="filter-pill" data-filter="Aquarion"><img src="assets/icons/tribes/aquarion.png" class="pill-icon-sm" alt=""> Aquarion</button>
+        </div>
+      </div>
+
+      <div id="codex-grid" class="codex-grid">
+        <!-- Rendered unit cards -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Load Modules -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

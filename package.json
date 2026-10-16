@@ -1,0 +1,9 @@
+{
+  "name": "polytopia-combat-calculator",
+  "version": "1.0.0",
+  "description": "Deterministic combat and siege calculator for The Battle of Polytopia",
+  "scripts": {
+    "start": "python -m http.server 8080",
+    "deploy": "npx vercel --prod"
+  }
+}

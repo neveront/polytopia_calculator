@@ -1,0 +1,17 @@
+# OS Files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# Scratch & Download Scripts
+download_*.py
+search_*.py
+
+# Node / Logs
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.vercel
+.netlify
